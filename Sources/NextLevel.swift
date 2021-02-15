@@ -1324,7 +1324,7 @@ extension NextLevel {
         }
         
         var currentDeviceOrientation: UIDeviceOrientation = UIDevice.current.orientation
-        DispatchQueue.main.sync {
+        DispatchQueue.main.async {
             switch UIApplication.shared.statusBarOrientation {
             case .portrait:
                 currentDeviceOrientation = .portrait
