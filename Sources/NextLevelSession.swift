@@ -201,6 +201,7 @@ public class NextLevelSession {
     private let NextLevelSessionAudioQueueIdentifier = "engineering.NextLevel.session.audioQueue"
     private let NextLevelSessionQueueIdentifier = "engineering.NextLevel.sessionQueue"
     private let NextLevelSessionSpecificKey = DispatchSpecificKey<()>()
+    private var progressTimer: Timer?
     
     // MARK: - object lifecycle
     
@@ -733,7 +734,11 @@ extension NextLevelSession {
                     self.removeFile(fileUrl: exportURL)
                     
                     if let exportSession = AVAssetExportSession(asset: exportAsset, presetName: preset) {
-                        let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { _ in
+                        if self.progressTimer != nil {
+                            self.progressTimer?.invalidate()
+                            self.progressTimer = nil
+                        }
+                        self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { _ in
                             DispatchQueue.main.async {
                                 progressHandler?(exportSession.progress)
                             }
@@ -742,8 +747,13 @@ extension NextLevelSession {
                         exportSession.outputURL = exportURL
                         exportSession.outputFileType = self.fileType
                         exportSession.exportAsynchronously {
-                            DispatchQueue.main.async {
-                                progressTimer.invalidate()
+                            DispatchQueue.main.async { [weak self] in
+                                guard let weakSelf = self else {
+                                    return
+                                }
+                                
+                                weakSelf.progressTimer?.invalidate()
+                                weakSelf.progressTimer = nil
                                 completionHandler(exportURL, exportSession.error)
                             }
                         }
