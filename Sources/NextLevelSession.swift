@@ -710,8 +710,11 @@ extension NextLevelSession {
     ///
     /// - Parameters:
     ///   - preset: AVAssetExportSession preset name for export
+    ///   - progressHandler: Handler for when the merging process in progress
     ///   - completionHandler: Handler for when the merging process completes
-    public func mergeClips(usingPreset preset: String, completionHandler: @escaping NextLevelSessionMergeClipsCompletionHandler) {
+    public func mergeClips(usingPreset preset: String,
+                           progressHandler: ((_: Float) -> Void)? = nil,
+                           completionHandler: @escaping NextLevelSessionMergeClipsCompletionHandler) {
         self.executeClosureAsyncOnSessionQueueIfNecessary {
             let filename = "\(self.identifier.uuidString)-NL-merged.\(self.fileExtension)"
 
@@ -730,11 +733,17 @@ extension NextLevelSession {
                     self.removeFile(fileUrl: exportURL)
                     
                     if let exportSession = AVAssetExportSession(asset: exportAsset, presetName: preset) {
+                        let progressTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+                            DispatchQueue.main.async {
+                                progressHandler?(exportSession.progress)
+                            }
+                        }
                         exportSession.shouldOptimizeForNetworkUse = true
                         exportSession.outputURL = exportURL
                         exportSession.outputFileType = self.fileType
                         exportSession.exportAsynchronously {
                             DispatchQueue.main.async {
+                                progressTimer.invalidate()
                                 completionHandler(exportURL, exportSession.error)
                             }
                         }
