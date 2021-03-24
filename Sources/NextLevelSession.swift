@@ -733,7 +733,7 @@ extension NextLevelSession {
                     self.removeFile(fileUrl: exportURL)
                     
                     if let exportSession = AVAssetExportSession(asset: exportAsset, presetName: preset) {
-                        let progressTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+                        let progressTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { _ in
                             DispatchQueue.main.async {
                                 progressHandler?(exportSession.progress)
                             }
