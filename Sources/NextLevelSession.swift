@@ -734,15 +734,22 @@ extension NextLevelSession {
                     self.removeFile(fileUrl: exportURL)
                     
                     if let exportSession = AVAssetExportSession(asset: exportAsset, presetName: preset) {
-                        if self.progressTimer != nil {
-                            self.progressTimer?.invalidate()
-                            self.progressTimer = nil
-                        }
-                        self.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { _ in
-                            DispatchQueue.main.async {
-                                progressHandler?(exportSession.progress)
+                        DispatchQueue.main.async { [weak self] in
+                            guard let weakSelf = self else {
+                                return
+                            }
+                            
+                            if weakSelf.progressTimer != nil {
+                                weakSelf.progressTimer?.invalidate()
+                                weakSelf.progressTimer = nil
+                            }
+                            weakSelf.progressTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { _ in
+                                DispatchQueue.main.async {
+                                    progressHandler?(exportSession.progress)
+                                }
                             }
                         }
+                        
                         exportSession.shouldOptimizeForNetworkUse = true
                         exportSession.outputURL = exportURL
                         exportSession.outputFileType = self.fileType
