@@ -723,16 +723,16 @@ extension NextLevelSession {
             var asset: AVAsset?
             
             if !self._clips.isEmpty {
-                
+
                 if self._clips.count == 1 {
                     debugPrint("NextLevel, warning, a merge was requested for a single clip, use lastClipUrl instead")
                 }
-                
+
                 asset = self.asset
 
                 if let exportAsset = asset, let exportURL = outputURL {
                     self.removeFile(fileUrl: exportURL)
-                    
+
                     if let exportSession = AVAssetExportSession(asset: exportAsset, presetName: preset) {
                         DispatchQueue.main.async { [weak self] in
                             guard let weakSelf = self else {
@@ -768,7 +768,7 @@ extension NextLevelSession {
                     }
                 }
             }
-            
+
             DispatchQueue.main.async {
                 completionHandler(nil, NextLevelError.unknown)
             }
